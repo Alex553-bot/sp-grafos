@@ -1,0 +1,112 @@
+
+
+    
+    private HashMap<Fecha, HashMap<Lugar, ArrayList<Horario>>> llenarCronograma(
+            HashMap<Lugar, ArrayList<Actividad>> actividades,
+            Fecha inicial, Fecha fin) {
+
+        HashMap<Fecha, HashMap<Lugar, ArrayList<Horario>>> crono = new HashMap<>();
+
+        HashMap<Lugar, ArrayList<Horario>> dd = new HashMap<>();
+        Hora auxiliar = new Hora(0, 0);
+        int index = 0;
+        for (Lugar l : actividades.keySet()) {
+            boolean band = true;
+            cargarDia(inicial);
+
+            ArrayList<ArrayList<Horario>> horarios = crearCronogramas(actividades.get(l), l, index);
+
+            for (int i = 0; i < horarios.size() && band; i++) {
+                ArrayList<Horario> programado = horarios.get(i);
+
+                if (auxiliar.compareTo(programado.get(0).getInicio()) == -1) {
+                    // para controlar el cambio de dia
+                    ArrayList<Horario> porDia;
+                    if (crono.get(inicial) == null) {
+                        dd = new HashMap<>();
+                        porDia = new ArrayList<>();
+                    } else {
+                        dd = crono.get(inicial);
+                        porDia = new ArrayList<>();
+                    }
+
+                    for (int j = 0; j < programado.size(); j++) {
+                        if (auxiliar.compareTo(programado.get(j).getInicio()) > 0) {
+                            crono.put(inicial.clone(), dd);
+
+                            dd = new HashMap<>();
+                            porDia = new ArrayList<>();
+                            dd.put(l, porDia);
+
+                            inicial.setDiaSemana(inicial.getDia() + 1);
+
+                            crono.put(inicial.clone(), dd);
+                            if (inicial.compareTo(fin) > 0) {
+                                return null;
+                            }
+                        }
+
+                        porDia.add(programado.get(i));
+
+                        auxiliar = programado.get(i).getFin();
+                    }
+                    dd.put(l, porDia);
+                    crono.put(inicial.clone(), dd);
+
+                    band = false;
+                }
+            }
+            if (band) {
+                return null;
+            }
+        }
+
+        return crono;
+    }
+
+    private ArrayList<ArrayList<Horario>> crearCronogramas(
+            ArrayList<Actividad> actividades,
+            Lugar lugar, int index) {
+
+        ArrayList<ArrayList<Horario>> cronogramas = new ArrayList<>();
+
+        ArrayList<ArrayList<Actividad>> caminos = new ArrayList<>();
+        ArrayList<Actividad> acts = new ArrayList<>();
+        for (int x = index; x < actividades.size(); x++) {
+            acts.add(actividades.get(x));
+        }
+
+        for (int i = 0; i < acts.size(); i++) {
+            for (int j = 0; j < acts.size(); j++) {
+                caminos = lugar.getProgramas().getRutas(acts.get(i),
+                        acts.get(j));
+
+                for (ArrayList<Actividad> aux : caminos) {
+                    if (!contiene(aux, acts)) {
+                        // caminos.remove(aux);
+                    } else {
+                        ArrayList<Horario> horarios = lugar.componerPrograma(aux, new ArrayList<>());
+                        if (horarios != null && horarios.size() > 0 && !contieneH(cronogramas, horarios)) {
+                            // System.out.println("Pudo agregar horarios");
+                            cronogramas.add(horarios);
+                        }
+
+                    }
+                }
+            }
+        }
+
+        return cronogramas;
+    }
+    private boolean contieneH(ArrayList<ArrayList<Horario>> l1, ArrayList<Horario> l2) {
+        if (l1.size() == 0)
+            return false;
+        for (ArrayList<Horario> l : l1) {
+            for (Horario h : l2) {
+                if (!l.contains(h)) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
