@@ -110,3 +110,49 @@
         }
         return true;
     }
+
+
+    / v2
+    private ArrayList<Horario> crearCronograma(
+            ArrayList<Actividad> actividades,
+            Lugar lugar, int index) {
+
+        ArrayList<ArrayList<Actividad>> caminos = new ArrayList<>();
+        ArrayList<Actividad> acts = new ArrayList<>();
+        for (int x = index; x < actividades.size(); x++) {
+            acts.add(actividades.get(x));
+        }
+
+        for (int i = 0; i < acts.size(); i++) {
+            for (int j = 0; j < acts.size(); j++) {
+                caminos = lugar.getProgramas().getRutas(acts.get(i),
+                        acts.get(j));
+
+                for (ArrayList<Actividad> aux : caminos) {
+                    if (!contiene(aux, acts)) {
+                        // caminos.remove(aux);
+                    } else {
+                        ArrayList<Horario> horarios = lugar.componerPrograma(aux, new ArrayList<>());
+                        if (horarios != null && horarios.size() > 0) {
+                            // System.out.println("Pudo agregar horarios");
+                            return horarios;
+                        }
+
+                    }
+                }
+            }
+        }
+
+        return null;
+    }
+
+
+
+    private boolean contiene(ArrayList<Actividad> l1, ArrayList<Actividad> l2) {
+        for (Actividad a : l2) {
+            if (!l1.contains(a)) {
+                return false;
+            }
+        }
+        return true;
+    }

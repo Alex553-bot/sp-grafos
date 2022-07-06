@@ -1,9 +1,11 @@
 package App.Estructuras;
 
+import App.Calendario.Hora;
 import App.Plano.*;
 
 import java.util.Iterator;
 import java.util.LinkedList;
+import java.util.Queue;
 import java.util.ArrayList;
 
 public class Grafo {
@@ -104,9 +106,10 @@ public class Grafo {
         double peso = Coordenadas.calcularDistancia(origen.getCoordenadas(),
                 destino.getCoordenadas());
 
+        
         Arista arista = new Arista(d, (float) peso);
 
-        if (!contiene(grafo[o], d)) {
+        if (!contiene(grafo[o], d) && peso<600) {
             grafo[o].add(arista);
         }
     }
@@ -244,6 +247,55 @@ public class Grafo {
             i++;
         }
         return false;
+    }
+
+    public int getMinimo(Lugar ini, Lugar fin) {
+        inicializarDijkstra();
+        return dijkstra(obtenerIndex(ini), obtenerIndex(fin));
+    }
+
+    private void inicializarDijkstra() {
+        for (Lugar l: vertices) {
+            l.value = Integer.MAX_VALUE-1;
+        }
+    }
+    private int obtenerIndex(Lugar l) {
+        for (int i=0; i<vertices.length; i++) {
+            if (l.equals(vertices[i])) {
+                return i;
+            }
+        }
+        return -1;
+    }
+
+    private int dijkstra(int i, int f) {
+        int n = vertices.length;
+        boolean[] vis = new boolean[n];
+        
+        Queue<Integer> cola = new LinkedList<>();
+        cola.add(i);
+        vertices[i].value = 0;
+
+        while (!cola.isEmpty()) {
+            int ac = cola.poll();
+
+            vis[ac] = true;
+            
+            for (Arista a: grafo[ac]) {
+                //System.out.println("De:" +ac+"hacia"+a.gesDestino());
+                //System.out.println("Peso actual" +vertices[a.gesDestino()].value);
+                int nuevoValor = (int)(a.getPeso()+vertices[ac].value);
+                //System.out.println("Nuevo valor: " + nuevoValor);
+                vertices[a.gesDestino()].value = (int)Math.min(vertices[a.gesDestino()].value, nuevoValor);
+
+                if (!vis[a.gesDestino()]) {
+                    cola.add(a.gesDestino());
+                }
+                //System.out.println("Peso ahora"+vertices[a.gesDestino()].value);
+            }
+        }
+
+        return vertices[f].value;
     }
 
     public Lugar[] getVertices() {

@@ -1,6 +1,7 @@
 package App.Negocios;
 
 import App.Calendario.Fecha;
+import App.Calendario.Hora;
 import App.Calendario.Horario;
 import App.Plano.Lugar;
 import App.Estructuras.Grafo;
@@ -12,11 +13,17 @@ public class Reserva {
     private Cliente cliente;
     private HashMap<Fecha, HashMap<Lugar, ArrayList<Horario>>> programado;
     private HashMap<Fecha, ArrayList<String>> viajes;
+    private Fecha inicial;
 
     public Reserva(Cliente c, HashMap<Fecha, HashMap<Lugar, ArrayList<Horario>>> horario, Grafo g) {
         cliente = c;
         programado = horario;
-
+        inicial = new Fecha(1, 1, Integer.MAX_VALUE);
+        for (Fecha f: horario.keySet()) {
+            if (f.compareTo(inicial)<0) {
+                inicial = f;
+            }
+        }
         /***
          * De Ciudad 1: 12/05/2022 18:15
          * a Ciudad 2: 12/05/2022 23:50
@@ -41,16 +48,18 @@ public class Reserva {
 
     public String getGuia() {
         String reporte = "";
-
-        for (Fecha f : programado.keySet()) {
-            reporte += f.toString() + "\n";
-            for (Lugar l : programado.get(f).keySet()) {
+        //Fecha ac = inicial.clone();
+        for (Fecha ac: programado.keySet()) {
+            reporte += ac.toString() + "\n";
+            HashMap<Lugar, ArrayList<Horario>> pp  = programado.get(ac);
+            if (pp!=null)
+            for (Lugar l : pp.keySet()) {
                 reporte += "\t" + l.getNombre() + "\n";
-                for (Horario h : programado.get(f).get(l)) {
+                for (Horario h : programado.get(ac).get(l)) {
                     reporte += "\t\t" + h.toString() + "\n";
                 }
             }
-
+            ac.setDiaSemana(ac.getDia()+1);
         }
 
         return reporte;
@@ -62,10 +71,14 @@ public class Reserva {
 
     public ArrayList<Lugar> getRuta() {
         ArrayList<Lugar> ruta = new ArrayList<>();
-        for (Fecha f : programado.keySet()) {
-            for (Lugar l : programado.get(f).keySet()) {
+        Fecha ac = inicial.clone();
+        for (int i=0; i<programado.keySet().size(); i++) {
+            HashMap<Lugar, ArrayList<Horario>> pp  = programado.get(ac);
+            if (pp!=null)
+            for (Lugar l : pp.keySet()) {
                 ruta.add(l);
             }
+            ac.setDiaSemana(ac.getDia()+1);
         }
         return ruta;
     }
@@ -86,17 +99,23 @@ public class Reserva {
 
     public String getPlanViaje() {
         String reporte = "";
+        //Fecha ac = inicial.clone();
 
-        for (Fecha f : programado.keySet()) {
-            reporte += "Fecha" + f.toString() + "\n";
+        for (Fecha ac: programado.keySet()) {
+            reporte += "Fecha" + ac.toString() + "\n";
             reporte += "VIAJES: \n";
-            for (String s: viajes.get(f)) {
+            ArrayList<String> ax = viajes.get(ac);
+            if (ax!=null)
+            for (String s: ax) {
                 reporte += "\t" + s + "\n";
             }
             reporte += "PROGRAMADO:\n";
-            for (Lugar l : programado.get(f).keySet()) {
+            HashMap<Lugar, ArrayList<Horario>> pp  = programado.get(ac);
+            if (pp!=null)
+            
+            for (Lugar l : pp.keySet()) {
                 reporte += "-" + l.getNombre() + ":\n";
-                for (Horario h : programado.get(f).get(l)) {
+                for (Horario h : programado.get(ac).get(l)) {
                     reporte += "\t"+h.toString() + "\n";
                 }
             }

@@ -184,3 +184,7 @@ La forma en la que empieza a construir las respuestas es la siguiente:
 2. Se crea los caminos de horarios, de una respectiva ciudad, tomando en cuenta la lista de actividades deseadas.
 3. Se crea y se valida el calendario dentro de las fechas establecidas, siendo que si nuestro cronograma abarca mas dias, no crea la reserva, caso de que debemos aumentar la Fecha fin.
 4. Valida el cronograma, devuelve el resultado.
+
+
+
+Clase lugar: arreglar el metodo camino minimo.

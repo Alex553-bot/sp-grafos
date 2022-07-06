@@ -16,7 +16,7 @@ import BD.Datos;
 public class Aplicacion {
 
     public static void main(String[] args) {
-        ArrayList<Lugar> lugares = Datos.obtenermapa(5);
+        ArrayList<Lugar> lugares = Datos.obtenermapa(8);
         Aplicacion aplicacion = new Aplicacion(lugares);
 
         Scanner sc = new Scanner(System.in);
@@ -24,38 +24,72 @@ public class Aplicacion {
             System.out.println("Opcion 1: imprimir lugares y su informacion");
             System.out.println("Opcion 2: crear Reserva");
             System.out.println("Opcion 3: imprimir Reservas");
+            System.out.println("Opcion 4: imprimir Actividades de 1 lugar");
+            System.out.println("Opcion 5: imprimir horarios disponibles de una fecha");
+            System.out.println("Opcion 6: calcular costo minimo");
             System.out.println("Opcion 0: para salir");
             int opcion = (sc.nextInt());
-            if (opcion==0) {
+            if (opcion == 0) {
                 break;
             }
             switch (opcion) {
-                case 1: aplicacion.imprimirLugares();
+                case 1:
+                    aplicacion.imprimirLugares();
                     break;
-                case 3: aplicacion.imprimirReservas();
+                case 3:
+                    aplicacion.imprimirReservas();
                     break;
-                default:
-                    System.out.print("Cliente: ");
-                    String cliente = sc.nextLine();
-                    System.out.println("Lugar Origen: ");
-                    Lugar origen = aplicacion.buscarLugar(sc.nextLine());
-                    System.out.println("Lugar Destino");
-                    Lugar destino = aplicacion.buscarLugar(sc.nextLine());
-                    System.out.println("Actividades a realizar: ");
-                    ArrayList<String> acts = new ArrayList<>();
-                    while (true) {
-                        if (sc.nextLine().isEmpty()) {
-                            break;
-                        }
-                        acts.add(sc.nextLine());
-                    }
-                    System.out.println("Fecha inicio: \nDia:");
+                case 4:
+                    sc.nextLine();
+                    System.out.println("CIUDAD : ");
+
+                    System.out.println((aplicacion.buscarLugar(sc.nextLine())).verActs());
+                    break;
+                case 5:
+                    sc.nextLine();
+                    System.out.println("Dia");
                     int dia = sc.nextInt();
                     System.out.println("Mes:");
                     int mes = sc.nextInt();
                     System.out.println("Anio:");
                     int anio = sc.nextInt();
                     Fecha inicio = new Fecha(dia, mes, anio);
+                    aplicacion.cargarDia(inicio);
+                    aplicacion.imprimirVacios();
+                    break;
+                case 6: 
+                    sc.nextLine();
+                    Lugar l1 = aplicacion.buscarLugar(sc.nextLine());
+                    Lugar l2 = aplicacion.buscarLugar(sc.nextLine());
+                    aplicacion.getGrafo().dibujarGrafo();
+                    System.out.println("MINIMO:" +aplicacion.getGrafo().getMinimo(l1, l2));
+                    break;
+                default:
+                    // System.out.print("Cliente: ");
+                    String cliente = sc.nextLine();
+                    System.out.println("Lugar Origen: ");
+                    Lugar origen = aplicacion.buscarLugar(sc.nextLine());
+                    System.out.println(origen == null);
+                    System.out.println("Lugar Destino");
+                    Lugar destino = aplicacion.buscarLugar(sc.nextLine());
+                    System.out.println("Dias minimos es:" +(aplicacion.getGrafo().getMinimo(origen, destino)/240+1)
+                                        + "dias");
+                    System.out.println("Actividades a realizar: ");
+                    ArrayList<String> acts = new ArrayList<>();
+                    while (true) {
+                        String act = sc.nextLine();
+                        if (act.isEmpty()) {
+                            break;
+                        }
+                        acts.add(act);
+                    }
+                    System.out.println("Fecha inicio: \nDia:");
+                    dia = sc.nextInt();
+                    System.out.println("Mes:");
+                    mes = sc.nextInt();
+                    System.out.println("Anio:");
+                    anio = sc.nextInt();
+                    inicio = new Fecha(dia, mes, anio);
                     System.out.println("Fecha fin: \nDia:");
                     dia = sc.nextInt();
                     System.out.println("Mes:");
@@ -63,22 +97,24 @@ public class Aplicacion {
                     System.out.println("Anio:");
                     anio = sc.nextInt();
                     Fecha fin = new Fecha(dia, mes, anio);
+                    System.out.println("Actividades guardadas:" + acts.toString());
                     aplicacion.crearReserva(cliente, inicio, fin, origen, destino, acts);
             }
         }
+        sc.close();
 
         ArrayList<String> act = new ArrayList<>();
         act.add("PARACAIDISMO");
         act.add("VISITAR LUGAR TURISTICO");
 
         aplicacion.crearReserva(
-                "Sr. Lopez", 
-                new Fecha(17, 06, 2022), 
+                "Sr. Lopez",
+                new Fecha(17, 06, 2022),
                 new Fecha(29, 06, 2022),
-                lugares.get(0), lugares.get(1), 
+                lugares.get(0), lugares.get(1),
                 act);
 
-        System.out.println(aplicacion.getReservas().get(0).getGuia());
+        System.out.println(aplicacion.getReservas().get(0).getPlanViaje());
         System.out.println();
 
         act.clear();
@@ -117,7 +153,9 @@ public class Aplicacion {
 
         ArrayList<ArrayList<Lugar>> caminos = grafo.getRutas(origen, dest);
         Fecha aux = inicial.clone();
-        for (ArrayList<Lugar> camino : caminos) {
+
+        for (int i=caminos.size()-1; i>-1; i--) {
+            ArrayList<Lugar> camino = caminos.get(i);
             inicial = aux.clone();
 
             // ordenamos las actividades,
@@ -125,7 +163,6 @@ public class Aplicacion {
             // debemos saber si existen lugarse vacios
             if (actsAux != null) {
                 HashMap<Fecha, HashMap<Lugar, ArrayList<Horario>>> cronograma = llenarCronograma(actsAux, inicial, fin);
-                // System.out.println("llego");
                 if (cronograma != null) {
                     Reserva x = new Reserva(new Cliente(cliente), cronograma, grafo);
                     reservas.add(x);
@@ -160,7 +197,6 @@ public class Aplicacion {
             Fecha inicial, Fecha fin) {
         HashMap<Fecha, HashMap<Lugar, ArrayList<Horario>>> crono = new HashMap<>();
 
-        Hora aux = new Hora(0, 0);
         Fecha clon = inicial.clone();
         crono.put(clon, new HashMap<>());
         for (Lugar l : actividades.keySet()) {
@@ -169,21 +205,24 @@ public class Aplicacion {
             cargarDia(inicial);
             ArrayList<Actividad> acts = actividades.get(l);
             while (index < acts.size()) {
-                ArrayList<Horario> cronogramaDia = crearCronogramas(acts, l, index);
+                ArrayList<Horario> cronogramaDia = crearCronograma(acts, l, index);
 
-                if (aux.compareTo(cronogramaDia.get(0).getInicio()) > 0) {
-                    inicial.setDiaSemana(inicial.getDia() + 1);
-                    clon = inicial.clone();
-                    crono.put(clon, new HashMap<>());
-                    crono.get(clon).put(l, new ArrayList<>());
-                }
+                //if (aux.compareTo(cronogramaDia.get(0).getInicio()) > 0) {
+                //    System.out.println("Cambiando de dia, por act" + inicial.toString());
+                //    inicial.setDiaSemana(inicial.getDia() + 1);
+                //    clon = inicial.clone();
+                //    crono.put(clon, new HashMap<>());
+                //    crono.get(clon).put(l, new ArrayList<>());
+                //}
 
                 for (Horario h : cronogramaDia) {
                     crono.get(clon).get(l).add(h);
-                    aux = h.getFin();
                 }
 
                 inicial.setDiaSemana(inicial.getDia() + 1);
+                clon = inicial.clone();
+                crono.put(clon, new HashMap<>());
+                crono.get(clon).put(l, new ArrayList<>());
                 cargarDia(inicial);
                 if (inicial.compareTo(fin) > 0) {
                     return null;
@@ -191,7 +230,7 @@ public class Aplicacion {
 
                 index += cronogramaDia.size();
             }
-            aux = new Hora(0, 0);
+            //System.out.println("Cambiando dia por lugar" + inicial.toString());
             inicial.setDiaSemana(inicial.getDia() + 1);
             clon = inicial.clone();
             crono.put(clon, new HashMap<>());
@@ -200,46 +239,28 @@ public class Aplicacion {
         return crono;
     }
 
-    private ArrayList<Horario> crearCronogramas(
+    private ArrayList<Horario> crearCronograma(
             ArrayList<Actividad> actividades,
             Lugar lugar, int index) {
-
-        ArrayList<ArrayList<Actividad>> caminos = new ArrayList<>();
         ArrayList<Actividad> acts = new ArrayList<>();
-        for (int x = index; x < actividades.size(); x++) {
-            acts.add(actividades.get(x));
+
+        for (int i = index; i < actividades.size(); i++) {
+            acts.add(actividades.get(i));
         }
-
-        for (int i = 0; i < acts.size(); i++) {
-            for (int j = 0; j < acts.size(); j++) {
-                caminos = lugar.getProgramas().getRutas(acts.get(i),
-                        acts.get(j));
-
-                for (ArrayList<Actividad> aux : caminos) {
-                    if (!contiene(aux, acts)) {
-                        // caminos.remove(aux);
-                    } else {
-                        ArrayList<Horario> horarios = lugar.componerPrograma(aux, new ArrayList<>());
-                        if (horarios != null && horarios.size() > 0) {
-                            // System.out.println("Pudo agregar horarios");
-                            return horarios;
-                        }
-
-                    }
-                }
+        ArrayList<Horario> horarioMin = new ArrayList<>();
+        if (acts.size() == 1) {
+            lugar.componerProgramaMinimo(actividades.get(0), actividades.get(0), horarioMin);
+        } else {
+            for (int i = 0; i < actividades.size() - 1; i++) {
+                int aux = horarioMin.size();
+                lugar.componerProgramaMinimo(actividades.get(i), actividades.get(i + 1), horarioMin);
+                if (aux == horarioMin.size())
+                    break;
             }
         }
-
-        return null;
-    }
-
-    private boolean contiene(ArrayList<Actividad> l1, ArrayList<Actividad> l2) {
-        for (Actividad a : l2) {
-            if (!l1.contains(a)) {
-                return false;
-            }
-        }
-        return true;
+        if (horarioMin.isEmpty())
+            return null;
+        return horarioMin;
     }
 
     // metodo donde vemos el estado de nuestros lugares y sus disponibilidades.
@@ -258,6 +279,13 @@ public class Aplicacion {
                     }
                 }
             }
+        }
+    }
+    public void imprimirVacios() {
+        System.out.println();
+        System.out.println("VACANTES EN TODOS LOS LUGARES");
+        for (Lugar l: grafo.getVertices()) {
+            l.imprimirHorariosDisponibles();
         }
     }
 
@@ -280,11 +308,12 @@ public class Aplicacion {
     public void imprimirLugares() {
         for (Lugar l : grafo.getVertices()) {
             System.out.println(l.toString());
-            //l.getProgramas().dibujarGrafo();
+            // l.getProgramas().dibujarGrafo();
         }
     }
+
     public void imprimirReservas() {
-        for (Reserva r: reservas) {
+        for (Reserva r : reservas) {
             System.out.println("RESERVA: \nGUIA:");
             System.out.println(r.getGuia());
             System.out.println("PLAN DE VIAJE:");
@@ -293,7 +322,7 @@ public class Aplicacion {
     }
 
     public Lugar buscarLugar(String x) {
-        for (Lugar l: grafo.getVertices()) {
+        for (Lugar l : grafo.getVertices()) {
             if (l.getNombre().equals(x)) {
                 return l;
             }

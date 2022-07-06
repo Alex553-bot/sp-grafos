@@ -12,7 +12,7 @@ public class Datos {
         ArrayList<Lugar> lugares = new ArrayList<>();
 
         for (int i = 0; i < n; i++) {
-            Lugar l = new Lugar(new Coordenadas(Math.random() * 500, Math.random() * 500), "Ciudad " + i);
+            Lugar l = new Lugar(new Coordenadas(Math.random() *1000, Math.random() * 1000), "Ciudad " + i);
 
             agregarActividades(l);
 
@@ -22,7 +22,7 @@ public class Datos {
         return lugares;
     }
 
-    private static void agregarActividades(Lugar l) {
+    public static void agregarActividades(Lugar l) {
         for (int i = 0; i < 6; i++) {
             int x = (int) (Math.random() * 10);
             Actividad a = new Actividad(getActividad(x));
@@ -40,7 +40,7 @@ public class Datos {
         }
     }
 
-    private static void agregarHorarios(Actividad a) {
+    public static void agregarHorarios(Actividad a) {
         for (int i = 0; i < 6; i++) {
             Hora h1 = new Hora((int) (Math.random() * 17) + 6, (int) (Math.random() * 60));
             Hora h2;
